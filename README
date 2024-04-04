@@ -1,3 +1,3 @@
-To get the processed data, add the file '995,000_rows.csv' to this folder, open 'cleaning.ipynb', uncomment the final six lines of code, and run the notebook. You may also wish to comment out the two penultimate code cells or simply skip them to save a few minutes of runtime.
+To get the processed data, add the file '995,000_rows.csv' to this folder, open 'cleaning.ipynb', uncomment the final six lines of code, and run the notebook. You may also wish to comment out the two penultimate code cells or simply skip them to save a bit of runtime.
 
 The trained models from 'simple.py' and 'advanced.py' are stored in 'simple.joblib' and 'advanced.joblib' respectively.
