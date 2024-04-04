@@ -18,16 +18,14 @@ def get_tokens(str):
 def make_data_binary(path):
   reliable_types = ['clickbait', 'reliable', 'political']
   all_types = ['clickbait', 'reliable', 'political', 'unreliable', 'fake', 'conspiracy', 'bias', 'junksci', 'satire', 'rumor']
-
   df = pd.read_csv(path)
   df = df.drop(df[~df.type.isin(all_types)].index)
   df['type'] = np.where(df['type'].isin(reliable_types), 'reliable', 'fake')
-
   return df
   
 
 if __name__ == "__main__":
-  #run = wandb.init(project="GDS_simple_log")
+  run = wandb.init(project="GDS_simple")
 
   simple_classifier = Pipeline([('cv', CountVectorizer(tokenizer=get_tokens,
                                                        lowercase=False,
@@ -41,14 +39,10 @@ if __name__ == "__main__":
   test_sz = int(data.shape[0]/5)
   content_train, content_test, type_train, type_test = train_test_split(data.content, data.type, test_size=test_sz, random_state=47)
 
-  #scores = cross_validate(simple_classifier, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
-  #precision = scores['test_precision_weighted'].mean()
-  #recall = scores['test_recall_weighted'].mean()
-  #f1 = scores['test_f1_weighted'].mean()
+  scores = cross_validate(simple_classifier, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
+  precision = scores['test_precision_weighted'].mean()
+  recall = scores['test_recall_weighted'].mean()
+  f1 = scores['test_f1_weighted'].mean()
 
-  simple_classifier.fit(content_train, type_train)
-  predicted = simple_classifier.predict(content_test)
-  print(np.mean(predicted == type_test))
-
-  #wandb.log({'Lemmatized': 0, 'RNC': 1, 'Precision': precision, 'Recall': recall, 'F1': f1})
+  wandb.log({'Lemmatized': 1, 'RNC': 1, 'Precision': precision, 'Recall': recall, 'F1': f1})
   dump(simple_classifier, 'simple.joblib')

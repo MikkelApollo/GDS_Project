@@ -18,12 +18,10 @@ def clean_string(str):
 
 def get_data(path):
   types = ['clickbait', 'reliable', 'political', 'unreliable', 'fake', 'conspiracy', 'bias', 'junksci', 'satire', 'rumor']
-
   df = pd.read_csv(path)
   df = df.drop(df[~df.type.isin(types)].index)
   for i in range(df.shape[0]):
     df.iat[i,3] = clean_string(df.iat[i,3])
-
   return df
 
 
@@ -40,12 +38,11 @@ if __name__ == "__main__":
                                   ('scaler', StandardScaler(copy=False)),
                                   ('class', MLPClassifier(hidden_layer_sizes=(500,400,300,200,100,), alpha=0.05, random_state=47))])
 
-  scores = cross_validate(advanced_classifier, content_train, type_train, scoring=('accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted'))
-  accuracy = scores['test_accuracy'].mean()
+  scores = cross_validate(advanced_classifier, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
   precision = scores['test_precision_weighted'].mean()
   recall = scores['test_recall_weighted'].mean()
   f1 = scores['test_f1_weighted'].mean()
   
 
-  wandb.log({'Lemmatized': 1, 'Accuracy': accuracy, 'Precision': precision, 'Recall': recall, 'F1': f1})
+  wandb.log({'Precision': precision, 'Recall': recall, 'F1': f1})
   dump(advanced_classifier, 'advanced.joblib')
