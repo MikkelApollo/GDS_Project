@@ -27,11 +27,11 @@ def make_data_binary(path):
 if __name__ == "__main__":
   run = wandb.init(project="GDS_simple")
 
-  simple_classifier = Pipeline([('cv', CountVectorizer(tokenizer=get_tokens,
-                                                       lowercase=False,
-                                                       token_pattern=None)),
-                                ('tfidf', TfidfTransformer()),
-                                ('class', LogisticRegression(max_iter=200))])
+  simp_class = Pipeline([('cv', CountVectorizer(tokenizer=get_tokens,
+                                                lowercase=False,
+                                                token_pattern=None)),
+                         ('tfidf', TfidfTransformer()),
+                         ('class', LogisticRegression())])
   
   fnc = make_data_binary('FNC_lemmatized.csv')
   rnc = make_data_binary('RNC_lemmatized.csv')
@@ -39,10 +39,13 @@ if __name__ == "__main__":
   test_sz = int(data.shape[0]/5)
   content_train, content_test, type_train, type_test = train_test_split(data.content, data.type, test_size=test_sz, random_state=47)
 
-  scores = cross_validate(simple_classifier, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
+  scores = cross_validate(simp_class, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
   precision = scores['test_precision_weighted'].mean()
   recall = scores['test_recall_weighted'].mean()
   f1 = scores['test_f1_weighted'].mean()
 
+
   wandb.log({'Lemmatized': 1, 'RNC': 1, 'Precision': precision, 'Recall': recall, 'F1': f1})
-  dump(simple_classifier, 'simple.joblib')
+
+  simp_class.fit(content_train, type_train)
+  dump(simp_class, 'simple.joblib')
