@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_validate
+from sklearn.metrics import f1_score
 from joblib import dump
 
 
@@ -32,17 +33,20 @@ if __name__ == "__main__":
   rnc = get_data('RNC_lemmatized.csv')
   data = pd.concat([fnc, rnc])
   test_sz = int(data.shape[0]/5)
-  content_train, content_test, type_train, type_test = train_test_split(data.content, data.type, test_size=test_sz, random_state=47)
+  content_train, content_validate, type_train, type_validate = train_test_split(data.content, data.type, test_size=test_sz, random_state=47)
+  content_train, content_test, type_train, type_test = train_test_split(content_train, type_train, test_size=test_sz)
 
-  advanced_classifier = Pipeline([('glove', EmbeddingTransformer('glove')),
+  adv_class = Pipeline([('w2v', EmbeddingTransformer('word2vec')),
                                   ('scaler', StandardScaler(copy=False)),
-                                  ('class', MLPClassifier(hidden_layer_sizes=(500,400,300,200,100,), alpha=0.05, random_state=47))])
-
-  scores = cross_validate(advanced_classifier, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
-  precision = scores['test_precision_weighted'].mean()
-  recall = scores['test_recall_weighted'].mean()
-  f1 = scores['test_f1_weighted'].mean()
+                                  ('class', MLPClassifier(hidden_layer_sizes=(200,150,100,), alpha=0.05, random_state=47))])
   
 
+  scores = cross_validate(adv_class, content_train, type_train, scoring=('precision_weighted', 'recall_weighted', 'f1_weighted'))
+  precision = scores['test_precision_weighted'].mean()
+  recall = scores['test_recall_weighted'].mean()
+  f1 = scores['test_f1_weighted'].mean() 
+
   wandb.log({'Precision': precision, 'Recall': recall, 'F1': f1})
-  dump(advanced_classifier, 'advanced.joblib')
+
+  adv_class.fit(content_train, type_train)
+  dump(adv_class, 'advanced.joblib')
